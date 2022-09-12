@@ -196,12 +196,11 @@ bool colour_registration_st::obtainTransforms()
     bool temp = true;
     tf::TransformListener listener;
     tf::Transform tf;
-    std::vector<std::string>::iterator suffix_it = _frame_suffix.begin();
     for(auto &p: _camera_frames)
     {
         // each string change to _color_optical_frame
         size_t npos = p.find("_link");
-        std::string opt_frame = p.substr(0,npos) + *suffix_it;
+        std::string opt_frame = p.substr(0,npos) + _frame_suffix;
         // each string, check transform
         ROS_DEBUG("Waiting transform between: %s and %s",_base_frame.c_str(),opt_frame.c_str());
         if(!listener.waitForTransform(opt_frame,_base_frame,ros::Time(0),ros::Duration(5.0)))
@@ -226,12 +225,6 @@ bool colour_registration_st::obtainTransforms()
             temp = false;
             break;
         }
-        // if only a single frame suffix, then it's fine to leave and re-use
-        // if vector exists, then it's the last one, shouldn't matter since camera frames should end too.
-        if(suffix_it != _frame_suffix.end()-1)
-        {
-            suffix_it++;
-        }
     }
     return temp;
 }
@@ -251,16 +244,16 @@ void colour_registration_st::cameraImageCallback(const sensor_msgs::ImageConstPt
     int index;
     ROS_DEBUG("Frame id: %s",msg->header.frame_id.c_str());
     // take '/' into account for frame id 
-    int startidx = (msg->header.frame_id.start() == '/') ? 1 : 0;
+    int startidx = ( *(msg->header.frame_id.begin()) == '/') ? 1 : 0;
     
-    std::size_t pos = msg->header.frame_id.find(_frame_suffix[0]);
+    std::size_t pos = msg->header.frame_id.find(_frame_suffix);
     ROS_DEBUG("Token: %s",(msg->header.frame_id.substr(startidx,pos)+"_link").c_str());
     auto it = std::find(_camera_frames.begin(),_camera_frames.end(),(msg->header.frame_id.substr(0,pos))+"_link");
     if(it == _camera_frames.end())
     {
         ROS_WARN("End of camera frame vector");
         ROS_ERROR("Invalid camera frame. Please check your param again");
-        continue;
+        return;
     }
     index = it - _camera_frames.begin();
     ROS_DEBUG("Index value: %d", index);

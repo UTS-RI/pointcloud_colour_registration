@@ -44,7 +44,7 @@ private:
 
     std::vector<std::string> _camera_frames;
     std::string _base_frame;
-    std::vector<std::string> _frame_suffix;
+    std::string _frame_suffix;
 
     std::vector<Eigen::Matrix3d> _camera_K;
     std::vector<geometry_msgs::Transform> _camera_frame_transforms;

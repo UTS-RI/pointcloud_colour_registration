@@ -107,10 +107,6 @@ bool colour_registration_st::getParams()
         ROS_WARN("Unable to find frame_suffix parameter.");
         temp = false;
     }
-    else
-    {
-        processLongString(tempstring,",",_frame_suffix);
-    }
     if(!_pnh->getParam("camera_frames",tempstring))
     {
         ROS_WARN("Unable to find camera_frames parameter.");
@@ -254,23 +250,21 @@ void colour_registration_st::cameraImageCallback(const sensor_msgs::ImageConstPt
     // find which index to process
     int index;
     ROS_DEBUG("Frame id: %s",msg->header.frame_id.c_str());
-    if(_frame_suffix.size() == 1)
+    // take '/' into account for frame id 
+    int startidx = (msg->header.frame_id.start() == '/') ? 1 : 0;
+    
+    std::size_t pos = msg->header.frame_id.find(_frame_suffix[0]);
+    ROS_DEBUG("Token: %s",(msg->header.frame_id.substr(startidx,pos)+"_link").c_str());
+    auto it = std::find(_camera_frames.begin(),_camera_frames.end(),(msg->header.frame_id.substr(0,pos))+"_link");
+    if(it == _camera_frames.end())
     {
-        std::size_t pos = msg->header.frame_id.find(_frame_suffix[0]);
-        ROS_DEBUG("Token: %s",(msg->header.frame_id.substr(0,pos)+"_link").c_str());
-        auto it = std::find(_camera_frames.begin(),_camera_frames.end(),(msg->header.frame_id.substr(0,pos))+"_link");
-        if(it == _camera_frames.end())
-        {
-            ROS_DEBUG("End of camera frame vector");
-        }
-        index = it - _camera_frames.begin();
-        ROS_DEBUG("Index value: %d", index);
+        ROS_WARN("End of camera frame vector");
+        ROS_ERROR("Invalid camera frame. Please check your param again");
+        continue;
     }
-    else
-    {
-        auto it = std::find(_frame_suffix.begin(),_frame_suffix.end(),msg->header.frame_id);
-        index = it - _frame_suffix.begin();
-    }
+    index = it - _camera_frames.begin();
+    ROS_DEBUG("Index value: %d", index);
+
     cv_bridge::CvImagePtr cvbridge;
     try
     {
@@ -283,7 +277,7 @@ void colour_registration_st::cameraImageCallback(const sensor_msgs::ImageConstPt
     }
     std::lock_guard<std::mutex> lk(_img_mtx);
     _current_images[index] = cvbridge->image;
-    ROS_DEBUG("Size of current image [index]: %u x %u",_current_images[index].rows,_current_images[index].cols);
+    ROS_DEBUG("Size of current image [%d]: %u x %u",index,_current_images[index].rows,_current_images[index].cols);
 }
 
 void colour_registration_st::pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)

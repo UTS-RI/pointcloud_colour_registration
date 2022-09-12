@@ -1,19 +1,22 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="published_topicname" default="/ouster_points" />
-    <arg name="pointcloud_topicname" default="/ouster_merged" />
+    <arg name="published_topicname" default="/spencer/sensors/color" />
+    <arg name="pointcloud_topicname" default="/spencer/sensors" />
     <arg name="base_frame" default="kmp200_base_link" />
     <!-- camera arguments are vector of strings delimited by a comma (without spaces) -->
-    <arg name="camera_frames" default="camera_pi3_link,camera_pi4_link" />
-    <arg name="camera_subtopics" default="/camera_pi3/color/image_raw,/camera_pi4/color/image_raw" />
-    <arg name="camerainfo_topics" default="/camera_pi3/color/camera_info,/camera_pi4/color/camera_info" />
-    <!-- if single value, assume the same for all, else, vector of strings delimited by comma (without spaces) -->
+    <!-- <arg name="camera_frames" default="camera_pi3_link,camera_pi4_link" /> -->
+    <!-- <arg name="camera_subtopics" default="/camera_pi3/color/image_raw,/camera_pi4/color/image_raw" /> -->
+    <!-- <arg name="camerainfo_topics" default="/camera_pi3/color/camera_info,/camera_pi4/color/camera_info" /> -->
+    <arg name="camera_frames" default="spencer/sensors/rgbd_front_top_link,camera_pi3_link,spencer/sensors/rgbd_rear_top_link" />
+    <arg name="camera_subtopics" default="/spencer/sensors/rgbd_front_top/color/image_raw,/camera_pi3/color/image_raw,/spencer/sensors/rgbd_rear_top/color/image_raw" />
+    <arg name="camerainfo_topics" default="/spencer/sensors/rgbd_front_top/color/camera_info,/camera_pi3/color/camera_info,/spencer/sensors/rgbd_rear_top/color/camera_info" />
+    <!-- assume the same suffix for all -->
     <arg name="frame_suffix" default="_color_optical_frame" />
     <!-- image transport options. Available: raw , compressed -->
     <arg name="image_transport_options" default="compressed" />
     <!-- suffix of the frame ID which gets published. Assumes namespace are the same as camera_frames -->
 
-    <node pkg="colour_registration" type="colour_registration_node" name="colour_registration_node" args="_image_transport:=$(arg image_transport_options)" output="screen" >
+    <node pkg="pointcloud_colour_registration" type="pointcloud_colour_registration_node" name="pointcloud_colour_registration_node" args="_image_transport:=$(arg image_transport_options)" output="screen" >
         <param name="published_topicname" value="$(arg published_topicname)" />
         <param name="pointcloud_topicname" value="$(arg pointcloud_topicname)" />
         <param name="base_frame" value="$(arg base_frame)" />

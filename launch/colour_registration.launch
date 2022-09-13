@@ -10,7 +10,7 @@
     <arg name="camera_frames" default="spencer/sensors/rgbd_front_top_link,camera_pi3_link,spencer/sensors/rgbd_rear_top_link" />
     <arg name="camera_subtopics" default="/spencer/sensors/rgbd_front_top/color/image_raw,/camera_pi3/color/image_raw,/spencer/sensors/rgbd_rear_top/color/image_raw" />
     <arg name="camerainfo_topics" default="/spencer/sensors/rgbd_front_top/color/camera_info,/camera_pi3/color/camera_info,/spencer/sensors/rgbd_rear_top/color/camera_info" />
-    <!-- assume the same suffix for all -->
+    <!-- if single value, assume the same for all, else, vector of strings delimited by comma (without spaces) -->
     <arg name="frame_suffix" default="_color_optical_frame" />
     <!-- image transport options. Available: raw , compressed -->
     <arg name="image_transport_options" default="compressed" />

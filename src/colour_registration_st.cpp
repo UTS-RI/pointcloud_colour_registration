@@ -102,7 +102,7 @@ bool colour_registration_st::getParams()
             temp = false;
         }
     }
-    if(!_pnh->getParam("frame_suffix",tempstring))
+    if(!_pnh->getParam("frame_suffix",_frame_suffix))
     {
         ROS_WARN("Unable to find frame_suffix parameter.");
         temp = false;
@@ -199,8 +199,9 @@ bool colour_registration_st::obtainTransforms()
     for(auto &p: _camera_frames)
     {
         // each string change to _color_optical_frame
-        size_t npos = p.find("_link");
-        std::string opt_frame = p.substr(0,npos) + _frame_suffix;
+        int startidx = ( *(p.begin()) == '/' ) ? 1 : 0;
+        size_t npos = p.find("_link")-startidx;
+        std::string opt_frame = p.substr(startidx,npos) + _frame_suffix;
         // each string, check transform
         ROS_DEBUG("Waiting transform between: %s and %s",_base_frame.c_str(),opt_frame.c_str());
         if(!listener.waitForTransform(opt_frame,_base_frame,ros::Time(0),ros::Duration(5.0)))
@@ -246,9 +247,9 @@ void colour_registration_st::cameraImageCallback(const sensor_msgs::ImageConstPt
     // take '/' into account for frame id 
     int startidx = ( *(msg->header.frame_id.begin()) == '/') ? 1 : 0;
     
-    std::size_t pos = msg->header.frame_id.find(_frame_suffix);
+    std::size_t pos = msg->header.frame_id.find(_frame_suffix) - startidx;
     ROS_DEBUG("Token: %s",(msg->header.frame_id.substr(startidx,pos)+"_link").c_str());
-    auto it = std::find(_camera_frames.begin(),_camera_frames.end(),(msg->header.frame_id.substr(0,pos))+"_link");
+    auto it = std::find(_camera_frames.begin(),_camera_frames.end(),(msg->header.frame_id.substr(startidx,pos))+"_link");
     if(it == _camera_frames.end())
     {
         ROS_WARN("End of camera frame vector");
